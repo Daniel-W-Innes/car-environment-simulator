@@ -51,41 +51,45 @@ func (c *Car) Run(lat, lng float64, north bool) error {
 	c.zoneLetter = zoneLetter
 
 	go func(car *Car) {
-		switch <-c.Input {
-		case Exit:
-			return
-		case Forward:
-			c.a += maxJ
-			if c.a > maxA {
-				c.a = maxA
+		for {
+			switch <-c.Input {
+			case Exit:
+				return
+			case Forward:
+				c.a += maxJ
+				if c.a > maxA {
+					c.a = maxA
+				}
+			case Backward:
+				c.a -= maxJ
+				if c.a < -maxA {
+					c.a = -maxA
+				}
+			case Left:
+				if c.angle == 0 {
+					c.angle = 359
+				} else {
+					c.angle -= 1
+				}
+			case Right:
+				if c.angle == 359 {
+					c.angle = 0
+				} else {
+					c.angle += 1
+				}
+			case CruiseControl:
+				c.j = 0
+				c.a = 0
+				c.v = 10
+			case Stop:
+				c.j = 0
+				c.a = 0
+				c.v = 0
 			}
-		case Backward:
-			c.a -= maxJ
-			if c.a < -maxA {
-				c.a = -maxA
-			}
-		case Left:
-			if c.angle == 0 {
-				c.angle = 359
-			} else {
-				c.angle -= 1
-			}
-		case Right:
-			if c.angle == 359 {
-				c.angle = 0
-			} else {
-				c.angle += 1
-			}
-		case CruiseControl:
-			c.j = 0
-			c.a = 0
-			c.v = 10
-		case Stop:
-			c.j = 0
-			c.a = 0
-			c.v = 0
 		}
 	}(c)
+
+	c.ticker = time.NewTicker(1 * time.Millisecond)
 
 	go func(c *Car) {
 		for range c.ticker.C {

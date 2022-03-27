@@ -12,7 +12,7 @@ func main() {
 	cse := app.New()
 	w := cse.NewWindow("car environment simulator")
 
-	car := physics.Car{}
+	car := physics.Car{Input: make(chan physics.Command)}
 
 	image := canvas.NewImageFromFile("cash/45.3219512062345,-75.71679090749016,70.jpg")
 
