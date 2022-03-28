@@ -29,11 +29,10 @@ const (
 type Car struct {
 	Input                   chan Command
 	easting, northing, v, a float64
-	zoneNumber              int
+	zoneNumber, angle       int
 	zoneLetter              string
 	ticker                  *time.Ticker
 	lastUpdated             int64
-	angle                   uint16
 	j                       int8
 }
 
@@ -46,7 +45,7 @@ func (c Car) GetPosition() manager.DownloadRequest {
 	if err != nil {
 		return manager.DownloadRequest{}
 	}
-	return manager.DownloadRequest{manager.Location{latitude, longitude}, c.angle}
+	return manager.DownloadRequest{Location: manager.Location{Latitude: latitude, Longitude: longitude}, Angle: c.angle}
 }
 
 func (c *Car) Run(lat, lng float64, north bool, output chan<- manager.DownloadRequest) error {
@@ -121,7 +120,7 @@ func (c *Car) Run(lat, lng float64, north bool, output chan<- manager.DownloadRe
 				if err != nil {
 					return
 				}
-				output <- manager.DownloadRequest{manager.Location{latitude, longitude}, c.angle}
+				output <- manager.DownloadRequest{Location: manager.Location{Latitude: latitude, Longitude: longitude}, Angle: c.angle}
 			}
 		}
 	}(c)

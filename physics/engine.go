@@ -4,10 +4,10 @@ import (
 	"math"
 )
 
-func toRadians(deg uint16) float64 {
+func toRadians(deg int) float64 {
 	return float64(deg) * (math.Pi / 180.0)
 }
-func xComponent(d float64, angle uint16) float64 {
+func xComponent(d float64, angle int) float64 {
 	if angle < 90 {
 		return d * math.Sin(toRadians(angle))
 	}
@@ -20,7 +20,7 @@ func xComponent(d float64, angle uint16) float64 {
 	return -d * math.Cos(toRadians(angle-270))
 }
 
-func yComponent(d float64, angle uint16) float64 {
+func yComponent(d float64, angle int) float64 {
 	if angle < 90 {
 		return d * math.Cos(toRadians(angle))
 	}
