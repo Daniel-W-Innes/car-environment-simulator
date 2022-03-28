@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	fyne.io/fyne/v2 v2.1.4
+	github.com/Daniel-W-Innes/street-view-image-manager v0.0.0-20220328001827-36561c6dc671
 	github.com/im7mortal/UTM v1.2.0
 )
 

@@ -5,7 +5,11 @@ import (
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/canvas"
 	"github.com/Daniel-W-Innes/car-environment-simulator/physics"
+	"github.com/Daniel-W-Innes/street-view-image-manager"
+	"image"
 	"log"
+	"os"
+	"time"
 )
 
 func main() {
@@ -14,9 +18,28 @@ func main() {
 
 	car := physics.Car{Input: make(chan physics.Command)}
 
-	image := canvas.NewImageFromFile("cash/45.3219512062345,-75.71679090749016,70.jpg")
+	downloader := manager.Downloader{
+		Input:           make(chan manager.DownloadRequest),
+		LocationUpdater: make(chan manager.DownloadRequest),
+		Output:          make(chan image.Image),
+	}
+	downloader.Run(os.Getenv("API_KEY"))
 
-	w.SetContent(image)
+	img := canvas.NewImageFromFile("cash/45.3219512062345,-75.71679090749016,70.jpg")
+
+	ticker := time.NewTicker(1 / 60 * time.Second)
+	go func() {
+		for range ticker.C {
+			downloader.LocationUpdater <- car.GetPosition()
+			newImg, ok := <-downloader.Output
+			if !ok {
+				return
+			}
+			img = canvas.NewImageFromImage(newImg)
+		}
+	}()
+
+	w.SetContent(img)
 	w.Canvas().SetOnTypedKey(func(event *fyne.KeyEvent) {
 		switch event.Name {
 		case fyne.KeyW:
@@ -35,13 +58,15 @@ func main() {
 		log.Println(car.ToString())
 	})
 
-	err := car.Run(45.3219512062345, -75.71679090749016, true)
+	err := car.Run(45.3219512062345, -75.71679090749016, true, downloader.Input)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
 	w.SetOnClosed(func() {
 		car.Input <- physics.Exit
+		ticker.Stop()
+		close(downloader.LocationUpdater)
 	})
 
 	w.ShowAndRun()

@@ -2,6 +2,7 @@ package physics
 
 import (
 	"fmt"
+	manager "github.com/Daniel-W-Innes/street-view-image-manager"
 	"github.com/im7mortal/UTM"
 	"math"
 	"time"
@@ -40,7 +41,15 @@ func (c Car) ToString() string {
 	return fmt.Sprintf("x %f, y %f", c.easting, c.northing)
 }
 
-func (c *Car) Run(lat, lng float64, north bool) error {
+func (c Car) GetPosition() manager.DownloadRequest {
+	latitude, longitude, err := UTM.ToLatLon(c.easting, c.northing, c.zoneNumber, c.zoneLetter)
+	if err != nil {
+		return manager.DownloadRequest{}
+	}
+	return manager.DownloadRequest{manager.Location{latitude, longitude}, c.angle}
+}
+
+func (c *Car) Run(lat, lng float64, north bool, output chan<- manager.DownloadRequest) error {
 	easting, northing, zoneNumber, zoneLetter, err := UTM.FromLatLon(lat, lng, north)
 	if err != nil {
 		return err
@@ -54,7 +63,7 @@ func (c *Car) Run(lat, lng float64, north bool) error {
 		for {
 			switch <-c.Input {
 			case Exit:
-				return
+				close(output)
 			case Forward:
 				c.a += maxJ
 				if c.a > maxA {
@@ -106,6 +115,14 @@ func (c *Car) Run(lat, lng float64, north bool) error {
 			c.v += deltaV(dt, c.a, float64(c.j))
 			c.a += deltaA(dt, c.a, float64(c.j))
 			c.lastUpdated = next
+			for i := 0.5; i < 2; i += 0.5 {
+				d = deltaD(i, c.v, c.a, float64(c.j))
+				latitude, longitude, err := UTM.ToLatLon(c.easting+xComponent(d, c.angle), c.northing+yComponent(d, c.angle), c.zoneNumber, c.zoneLetter)
+				if err != nil {
+					return
+				}
+				output <- manager.DownloadRequest{manager.Location{latitude, longitude}, c.angle}
+			}
 		}
 	}(c)
 
