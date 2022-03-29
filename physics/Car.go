@@ -48,7 +48,7 @@ func (c Car) GetPosition() downloader.DownloadRequest {
 	return downloader.DownloadRequest{Location: downloader.Location{Latitude: latitude, Longitude: longitude}, Angle: c.angle}
 }
 
-func (c *Car) Run(lat, lng float64, north bool, output chan<- downloader.DownloadRequest) error {
+func (c *Car) Run(lat, lng float64, north bool, angle int, output chan<- downloader.DownloadRequest) error {
 	easting, northing, zoneNumber, zoneLetter, err := UTM.FromLatLon(lat, lng, north)
 	if err != nil {
 		return err
@@ -57,6 +57,7 @@ func (c *Car) Run(lat, lng float64, north bool, output chan<- downloader.Downloa
 	c.northing = northing
 	c.zoneNumber = zoneNumber
 	c.zoneLetter = zoneLetter
+	c.angle = angle
 
 	go func(car *Car) {
 		for {

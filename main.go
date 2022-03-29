@@ -6,7 +6,6 @@ import (
 	"fyne.io/fyne/v2/canvas"
 	"github.com/Daniel-W-Innes/car-environment-simulator/downloader"
 	"github.com/Daniel-W-Innes/car-environment-simulator/physics"
-	"image"
 	"log"
 	"os"
 	"time"
@@ -18,16 +17,12 @@ func main() {
 
 	car := physics.Car{Input: make(chan physics.Command)}
 
-	backend := downloader.Downloader{
-		Input:           make(chan downloader.DownloadRequest),
-		LocationUpdater: make(chan downloader.DownloadRequest),
-		Output:          make(chan image.Image),
-	}
+	backend := downloader.New()
 	backend.Run(os.Getenv("API_KEY"))
 
 	img := canvas.NewImageFromFile("cash/45.3219512062345,-75.71679090749016,70.jpg")
 
-	ticker := time.NewTicker(1 / 60 * time.Second)
+	ticker := time.NewTicker(17 * time.Millisecond)
 	go func() {
 		for range ticker.C {
 			backend.LocationUpdater <- car.GetPosition()
@@ -58,7 +53,7 @@ func main() {
 		log.Println(car.ToString())
 	})
 
-	err := car.Run(45.3219512062345, -75.71679090749016, true, backend.Input)
+	err := car.Run(45.3219512062345, -75.71679090749016, true, 160, backend.Input)
 	if err != nil {
 		log.Fatalln(err)
 	}
