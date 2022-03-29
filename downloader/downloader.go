@@ -40,7 +40,7 @@ func getImageFromGoogle(request DownloadRequest, key string) (image.Image, error
 }
 
 func getImage(request DownloadRequest, key string) (image.Image, error) {
-	path := fmt.Sprintf("~/.cache/%s,%d.jpg", request.Location.toString(), request.Angle)
+	path := fmt.Sprintf("~/.cache/car-environment-simulator/%s,%d.jpg", request.Location.toString(), request.Angle)
 	f, err := os.Open(path)
 	if errors.Is(err, os.ErrNotExist) {
 		img, err := getImageFromGoogle(request, key)
