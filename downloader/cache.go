@@ -50,21 +50,17 @@ func (p *Point) update(l1, l2 Location, angle int, minDistance float64) (float64
 	p.mux.Lock()
 	defer p.mux.Unlock()
 	distance := l1.distance(l2)
-	if distance < minDistance {
-		p.distance = distance
-		return distance, p.images[angle], false, true
-	} else if distance < p.distance {
-		return 0, nil, true, false
-	}
+	next := distance < minDistance
+	remove := distance > p.distance
 	p.distance = distance
-	return 0, nil, false, false
+	return distance, p.images[angle], remove, next
 }
 
 func (c *Cache) removeInLoop(location Location) {
 	c.mux.RUnlock()
 	c.mux.Lock()
-	defer c.mux.Unlock()
 	defer c.mux.RLock()
+	defer c.mux.Unlock()
 	delete(c.pointCache, location)
 }
 
@@ -73,13 +69,22 @@ func (c *Cache) getAndClean(request DownloadRequest) image.Image {
 	defer c.mux.RUnlock()
 	minDistance := math.MaxFloat64
 	var next image.Image
+	var toRemove []Location
+	var nextLoc Location
 	for l, point := range c.pointCache {
 		newDistance, img, remove, newNext := point.update(l, request.Location, request.Angle, minDistance)
 		if newNext {
 			minDistance = newDistance
 			next = img
-		} else if remove {
-			c.removeInLoop(l)
+			nextLoc = l
+		}
+		if remove {
+			toRemove = append(toRemove, l)
+		}
+	}
+	for _, location := range toRemove {
+		if location != nextLoc {
+			c.removeInLoop(location)
 		}
 	}
 	return next
