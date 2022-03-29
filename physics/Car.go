@@ -2,7 +2,7 @@ package physics
 
 import (
 	"fmt"
-	manager "github.com/Daniel-W-Innes/street-view-image-manager"
+	"github.com/Daniel-W-Innes/car-environment-simulator/downloader"
 	"github.com/im7mortal/UTM"
 	"math"
 	"time"
@@ -40,15 +40,15 @@ func (c Car) ToString() string {
 	return fmt.Sprintf("x %f, y %f", c.easting, c.northing)
 }
 
-func (c Car) GetPosition() manager.DownloadRequest {
+func (c Car) GetPosition() downloader.DownloadRequest {
 	latitude, longitude, err := UTM.ToLatLon(c.easting, c.northing, c.zoneNumber, c.zoneLetter)
 	if err != nil {
-		return manager.DownloadRequest{}
+		return downloader.DownloadRequest{}
 	}
-	return manager.DownloadRequest{Location: manager.Location{Latitude: latitude, Longitude: longitude}, Angle: c.angle}
+	return downloader.DownloadRequest{Location: downloader.Location{Latitude: latitude, Longitude: longitude}, Angle: c.angle}
 }
 
-func (c *Car) Run(lat, lng float64, north bool, output chan<- manager.DownloadRequest) error {
+func (c *Car) Run(lat, lng float64, north bool, output chan<- downloader.DownloadRequest) error {
 	easting, northing, zoneNumber, zoneLetter, err := UTM.FromLatLon(lat, lng, north)
 	if err != nil {
 		return err
@@ -120,7 +120,7 @@ func (c *Car) Run(lat, lng float64, north bool, output chan<- manager.DownloadRe
 				if err != nil {
 					return
 				}
-				output <- manager.DownloadRequest{Location: manager.Location{Latitude: latitude, Longitude: longitude}, Angle: c.angle}
+				output <- downloader.DownloadRequest{Location: downloader.Location{Latitude: latitude, Longitude: longitude}, Angle: c.angle}
 			}
 		}
 	}(c)
