@@ -2,6 +2,7 @@ package downloader
 
 import (
 	"image"
+	"sync"
 )
 
 type Downloader struct {
@@ -23,7 +24,7 @@ func New() Downloader {
 		LocationUpdater:  make(chan DownloadRequest),
 		Output:           make(chan image.Image),
 		downloadRequests: make(chan DownloadRequest),
-		cache:            &Cache{},
+		cache:            &Cache{mux: sync.RWMutex{}, pointCache: map[Location]*Point{}},
 	}
 }
 

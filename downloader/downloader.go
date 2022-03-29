@@ -15,6 +15,9 @@ import (
 const SIZE = "1280x960"
 
 func getImageFromGoogle(request DownloadRequest, key string) (image.Image, error) {
+	if os.Getenv("USE_GOOGLE") != "y" {
+		return nil, errors.New("tried to download image from google")
+	}
 	response, err := http.Get(fmt.Sprintf("https://maps.googleapis.com/maps/api/streetview?size=%s&Location=%f,%f&heading=%d&key=%s", SIZE, request.Location.Latitude, request.Location.Longitude, request.Angle, key))
 	if err != nil {
 		return nil, err
@@ -40,7 +43,7 @@ func getImageFromGoogle(request DownloadRequest, key string) (image.Image, error
 }
 
 func getImage(request DownloadRequest, key string) (image.Image, error) {
-	path := fmt.Sprintf("~/.cache/car-environment-simulator/%s,%d.jpg", request.Location.toString(), request.Angle)
+	path := fmt.Sprintf("/home/daniel/.cache/car-environment-simulator/%s,%d.jpg", request.Location.toString(), request.Angle)
 	f, err := os.Open(path)
 	if errors.Is(err, os.ErrNotExist) {
 		img, err := getImageFromGoogle(request, key)

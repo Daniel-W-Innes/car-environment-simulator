@@ -20,7 +20,7 @@ func toRadians(deg float64) float64 {
 	return deg * (math.Pi / 180.0)
 }
 func (l Location) toString() string {
-	return fmt.Sprintf("%f,%f", l.Latitude, l.Longitude)
+	return fmt.Sprintf("%.5f,%.5f", l.Latitude, l.Longitude)
 }
 
 func (l Location) distance(location Location) float64 {
@@ -66,7 +66,8 @@ func repeatForAngleTolerance(downloadRequest DownloadRequest, output chan<- Down
 }
 
 func getMetadata(location Location, key string) (*Metadata, error) {
-	response, err := http.Get(fmt.Sprintf("https://maps.googleapis.com/maps/api/streetview/metadata?Location=%s&key=%s", location.toString(), key))
+	url := fmt.Sprintf("https://maps.googleapis.com/maps/api/streetview/metadata?location=%s&key=%s", location.toString(), key)
+	response, err := http.Get(url)
 	if err != nil {
 		return nil, err
 	}

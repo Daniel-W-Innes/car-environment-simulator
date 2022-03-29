@@ -26,7 +26,7 @@ func (c *Cache) add(request DownloadRequest, img image.Image) {
 		point.images[request.Angle] = img
 	} else {
 		c.mux.RUnlock()
-		p := Point{distance: math.MaxFloat64}
+		p := Point{mux: sync.RWMutex{}, distance: math.MaxFloat64, images: map[int]image.Image{}}
 		p.images[request.Angle] = img
 		c.mux.Lock()
 		defer c.mux.Unlock()
