@@ -89,3 +89,14 @@ func (c *Cache) getAndClean(request DownloadRequest) image.Image {
 	}
 	return next
 }
+
+func (c *Cache) exporter(input <-chan DownloadRequest, output chan<- image.Image) {
+	for {
+		downloadRequest, ok := <-input
+		if !ok {
+			close(output)
+			return
+		}
+		output <- c.getAndClean(downloadRequest)
+	}
+}

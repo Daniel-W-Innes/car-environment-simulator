@@ -28,19 +28,8 @@ func New() Downloader {
 	}
 }
 
-func exporter(cache *Cache, input <-chan DownloadRequest, output chan<- image.Image) {
-	for {
-		downloadRequest, ok := <-input
-		if !ok {
-			close(output)
-			return
-		}
-		output <- cache.getAndClean(downloadRequest)
-	}
-}
-
-func (d *Downloader) Run(key string) {
+func (d *Downloader) Run(key string, preventDownload bool) {
 	go preload(d.Input, d.downloadRequests, key)
-	go download(d.downloadRequests, d.cache, key)
-	go exporter(d.cache, d.LocationUpdater, d.Output)
+	go download(d.downloadRequests, d.cache, key, preventDownload)
+	go d.cache.exporter(d.LocationUpdater, d.Output)
 }

@@ -15,5 +15,4 @@ fabric.properties
 *.dylib
 *.test
 *.out
-
-/cash/
+/.run/

@@ -19,7 +19,7 @@ type Location struct {
 func toRadians(deg float64) float64 {
 	return deg * (math.Pi / 180.0)
 }
-func (l Location) toString() string {
+func (l Location) String() string {
 	return fmt.Sprintf("%.5f,%.5f", l.Latitude, l.Longitude)
 }
 
@@ -66,7 +66,7 @@ func repeatForAngleTolerance(downloadRequest DownloadRequest, output chan<- Down
 }
 
 func getMetadata(location Location, key string) (*Metadata, error) {
-	url := fmt.Sprintf("https://maps.googleapis.com/maps/api/streetview/metadata?location=%s&key=%s", location.toString(), key)
+	url := fmt.Sprintf("https://maps.googleapis.com/maps/api/streetview/metadata?location=%s&key=%s", location.String(), key)
 	response, err := http.Get(url)
 	if err != nil {
 		return nil, err

@@ -14,8 +14,8 @@ import (
 
 const SIZE = "1280x960"
 
-func getImageFromGoogle(request DownloadRequest, key string) (image.Image, error) {
-	if os.Getenv("USE_GOOGLE") != "y" {
+func getImageFromGoogle(request DownloadRequest, key string, prevent bool) (image.Image, error) {
+	if os.Getenv("USE_GOOGLE") != "y" || prevent {
 		return nil, errors.New("tried to download image from google")
 	}
 	response, err := http.Get(fmt.Sprintf("https://maps.googleapis.com/maps/api/streetview?size=%s&Location=%f,%f&heading=%d&key=%s", SIZE, request.Location.Latitude, request.Location.Longitude, request.Angle, key))
@@ -42,11 +42,11 @@ func getImageFromGoogle(request DownloadRequest, key string) (image.Image, error
 	return decode, nil
 }
 
-func getImage(request DownloadRequest, key string) (image.Image, error) {
-	path := fmt.Sprintf("/home/daniel/.cache/car-environment-simulator/%s,%d.jpg", request.Location.toString(), request.Angle)
+func getImage(request DownloadRequest, key string, preventDownload bool) (image.Image, error) {
+	path := fmt.Sprintf("/home/daniel/.cache/car-environment-simulator/%s,%d.jpg", request.Location.String(), request.Angle)
 	f, err := os.Open(path)
 	if errors.Is(err, os.ErrNotExist) {
-		img, err := getImageFromGoogle(request, key)
+		img, err := getImageFromGoogle(request, key, preventDownload)
 		if err != nil {
 			return img, err
 		}
@@ -63,14 +63,14 @@ func getImage(request DownloadRequest, key string) (image.Image, error) {
 	return img, err
 }
 
-func download(input <-chan DownloadRequest, cache *Cache, key string) {
+func download(input <-chan DownloadRequest, cache *Cache, key string, preventDownload bool) {
 	for {
 		downloadRequest, ok := <-input
 		if !ok {
 			return
 		}
 		if !cache.has(downloadRequest) {
-			img, err := getImage(downloadRequest, key)
+			img, err := getImage(downloadRequest, key, preventDownload)
 			if err != nil {
 				return
 			}

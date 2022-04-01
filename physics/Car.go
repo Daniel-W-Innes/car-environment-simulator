@@ -36,7 +36,7 @@ type Car struct {
 	j                       int8
 }
 
-func (c Car) ToString() string {
+func (c Car) String() string {
 	return fmt.Sprintf("x %f, y %f", c.easting, c.northing)
 }
 

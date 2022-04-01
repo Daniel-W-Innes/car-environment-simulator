@@ -18,9 +18,9 @@ func main() {
 	car := physics.Car{Input: make(chan physics.Command)}
 
 	backend := downloader.New()
-	backend.Run(os.Getenv("API_KEY"))
+	backend.Run(os.Getenv("API_KEY"), false)
 
-	img := canvas.NewImageFromFile("cash/45.3219512062345,-75.71679090749016,70.jpg")
+	img := canvas.NewImageFromFile("res/45.3219512062345,-75.71679090749016,70.jpg")
 
 	ticker := time.NewTicker(17 * time.Millisecond)
 	go func() {
@@ -31,11 +31,13 @@ func main() {
 				return
 			}
 			img = canvas.NewImageFromImage(newImg)
+			w.SetContent(img)
 		}
 	}()
 
 	w.SetContent(img)
 	w.Canvas().SetOnTypedKey(func(event *fyne.KeyEvent) {
+		log.Println(event.Name)
 		switch event.Name {
 		case fyne.KeyW:
 			car.Input <- physics.Forward
@@ -49,8 +51,9 @@ func main() {
 			car.Input <- physics.CruiseControl
 		case fyne.KeyBackspace:
 			car.Input <- physics.Stop
+		case fyne.KeyP:
+			log.Println(car.String())
 		}
-		log.Println(car.ToString())
 	})
 
 	err := car.Run(45.3219512062345, -75.71679090749016, true, 160, backend.Input)
@@ -64,5 +67,6 @@ func main() {
 		close(backend.LocationUpdater)
 	})
 
+	w.Resize(fyne.Size{Width: 1020, Height: 1020})
 	w.ShowAndRun()
 }
