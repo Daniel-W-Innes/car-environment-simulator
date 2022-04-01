@@ -2,6 +2,7 @@ package downloader
 
 import (
 	"image"
+	"log"
 	"math"
 	"sync"
 )
@@ -18,6 +19,7 @@ type Point struct {
 }
 
 func (c *Cache) add(request DownloadRequest, img image.Image) {
+	log.Printf("adding to cache %s, %d\n", request.Location, request.Angle)
 	c.mux.RLock()
 	if point, ok := c.pointCache[request.Location]; ok {
 		defer c.mux.RUnlock()

@@ -18,7 +18,9 @@ func getImageFromGoogle(request DownloadRequest, key string, prevent bool) (imag
 	if os.Getenv("USE_GOOGLE") != "y" || prevent {
 		return nil, errors.New("tried to download image from google")
 	}
-	response, err := http.Get(fmt.Sprintf("https://maps.googleapis.com/maps/api/streetview?size=%s&Location=%f,%f&heading=%d&key=%s", SIZE, request.Location.Latitude, request.Location.Longitude, request.Angle, key))
+	log.Printf("getting image from google %s, %d\n", request.Location.String(), request.Angle)
+	path := fmt.Sprintf("https://maps.googleapis.com/maps/api/streetview?size=%s&location=%s&heading=%d&key=%s", SIZE, request.Location.String(), request.Angle, key)
+	response, err := http.Get(path)
 	if err != nil {
 		return nil, err
 	}
@@ -72,6 +74,7 @@ func download(input <-chan DownloadRequest, cache *Cache, key string, preventDow
 		if !cache.has(downloadRequest) {
 			img, err := getImage(downloadRequest, key, preventDownload)
 			if err != nil {
+				log.Fatalln(err)
 				return
 			}
 			cache.add(downloadRequest, img)

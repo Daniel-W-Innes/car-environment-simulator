@@ -56,7 +56,7 @@ func main() {
 		}
 	})
 
-	err := car.Run(45.3219512062345, -75.71679090749016, true, 160, backend.Input)
+	err := car.Run(45.32441, -75.71821, true, 160, backend.Input)
 	if err != nil {
 		log.Fatalln(err)
 	}

@@ -101,6 +101,7 @@ func preload(input <-chan DownloadRequest, output chan<- DownloadRequest, key st
 		}
 		metadata, err := getMetadata(downloadRequest.Location, key)
 		if err != nil {
+			log.Fatalln(err)
 			return
 		}
 		repeatForAngleTolerance(DownloadRequest{metadata.Location, downloadRequest.Angle}, output)

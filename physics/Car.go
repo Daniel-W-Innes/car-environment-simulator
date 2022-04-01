@@ -37,7 +37,7 @@ type Car struct {
 }
 
 func (c Car) String() string {
-	return fmt.Sprintf("x %f, y %f", c.easting, c.northing)
+	return fmt.Sprintf("x %f, y %f, num %d, letter %s", c.easting, c.northing, c.zoneNumber, c.zoneLetter)
 }
 
 func (c Car) GetPosition() downloader.DownloadRequest {
