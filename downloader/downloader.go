@@ -65,7 +65,7 @@ func getImage(request DownloadRequest, key string, preventDownload bool) (image.
 	return img, err
 }
 
-func download(input <-chan DownloadRequest, cache *Cache, key string, preventDownload bool) {
+func download(input <-chan DownloadRequest, cache *CacheImpl, key string, preventDownload bool) {
 	for {
 		downloadRequest, ok := <-input
 		if !ok {

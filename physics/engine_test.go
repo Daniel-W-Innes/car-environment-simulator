@@ -62,3 +62,28 @@ func Test_yComponent(t *testing.T) {
 		})
 	}
 }
+
+func Test_deltaD(t *testing.T) {
+	type args struct {
+		dt float64
+		v  float64
+		a  float64
+		j  float64
+	}
+	tests := []struct {
+		name string
+		args args
+		want float64
+	}{
+		{"v_10", args{1, 10, 0, 0}, 10.0},
+		{"a_10", args{1, 0, 10, 0}, 5.0},
+		{"v_10 a_10", args{1, 10, 10, 0}, 15.0},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := deltaD(tt.args.dt, tt.args.v, tt.args.a, tt.args.j); got != tt.want {
+				t.Errorf("deltaD() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

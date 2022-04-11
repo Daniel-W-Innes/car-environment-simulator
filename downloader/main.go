@@ -10,7 +10,7 @@ type Downloader struct {
 	LocationUpdater  chan DownloadRequest
 	Output           chan image.Image
 	downloadRequests chan DownloadRequest
-	cache            *Cache
+	cache            *CacheImpl
 }
 
 type DownloadRequest struct {
@@ -24,7 +24,7 @@ func New() Downloader {
 		LocationUpdater:  make(chan DownloadRequest),
 		Output:           make(chan image.Image),
 		downloadRequests: make(chan DownloadRequest),
-		cache:            &Cache{mux: sync.RWMutex{}, pointCache: map[Location]*Point{}},
+		cache:            &CacheImpl{mux: sync.RWMutex{}, pointCache: map[Location]*Point{}},
 	}
 }
 

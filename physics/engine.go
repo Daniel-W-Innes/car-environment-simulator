@@ -34,12 +34,43 @@ func yComponent(d float64, angle int) float64 {
 }
 
 func deltaD(dt, v, a, j float64) float64 {
-	return v*dt + 0.5*a*math.Pow(dt, 2) + 1.0/6*j*math.Pow(math.Min(-a/j, dt), 3)
+	output := 0.0
+	if v != 0 {
+		output += v * dt
+	}
+	if a != 0 {
+		output += 0.5 * a * math.Pow(dt, 2)
+	}
+	if j != 0 {
+		output += 1.0 / 6 * j * math.Pow(math.Min(-a/j, dt), 3)
+	}
+	return output
 }
 
 func deltaV(dt, a, j float64) float64 {
-	return a*dt + 0.5*j*math.Pow(math.Min(-a/j, dt), 2)
+	output := 0.0
+	if a != 0 {
+		output += a * dt
+	}
+	if j != 0 {
+		output += 0.5 * j * math.Pow(math.Min(-a/j, dt), 2)
+	}
+	return output
 }
 func deltaA(dt, a, j float64) float64 {
-	return j * math.Min(-a/j, dt)
+	if j != 0 {
+		return j * math.Min(-a/j, dt)
+	}
+	return 0
+}
+
+func deltaJ(dt, j float64) float64 {
+	if j == 0 {
+		return j
+	}
+	if j > 0 {
+		return j - maxJ*dt
+	} else {
+		return j + maxJ*dt
+	}
 }

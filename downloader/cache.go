@@ -7,7 +7,14 @@ import (
 	"sync"
 )
 
-type Cache struct {
+type Cache interface {
+	add(request DownloadRequest, img image.Image)
+	has(request DownloadRequest) bool
+	getAndClean(request DownloadRequest) image.Image
+	exporter(input <-chan DownloadRequest, output chan<- image.Image)
+}
+
+type CacheImpl struct {
 	mux        sync.RWMutex
 	pointCache map[Location]*Point
 }
@@ -18,7 +25,7 @@ type Point struct {
 	images   map[int]image.Image
 }
 
-func (c *Cache) add(request DownloadRequest, img image.Image) {
+func (c *CacheImpl) add(request DownloadRequest, img image.Image) {
 	log.Printf("adding to cache %s, %d\n", request.Location, request.Angle)
 	c.mux.RLock()
 	if point, ok := c.pointCache[request.Location]; ok {
@@ -36,7 +43,7 @@ func (c *Cache) add(request DownloadRequest, img image.Image) {
 	}
 }
 
-func (c *Cache) has(request DownloadRequest) bool {
+func (c *CacheImpl) has(request DownloadRequest) bool {
 	c.mux.RLock()
 	defer c.mux.RUnlock()
 	if point, ok := c.pointCache[request.Location]; ok {
@@ -58,7 +65,7 @@ func (p *Point) update(l1, l2 Location, angle int, minDistance float64) (float64
 	return distance, p.images[angle], remove, next
 }
 
-func (c *Cache) removeInLoop(location Location) {
+func (c *CacheImpl) removeInLoop(location Location) {
 	c.mux.RUnlock()
 	c.mux.Lock()
 	defer c.mux.RLock()
@@ -66,7 +73,7 @@ func (c *Cache) removeInLoop(location Location) {
 	delete(c.pointCache, location)
 }
 
-func (c *Cache) getAndClean(request DownloadRequest) image.Image {
+func (c *CacheImpl) getAndClean(request DownloadRequest) image.Image {
 	c.mux.RLock()
 	defer c.mux.RUnlock()
 	minDistance := math.MaxFloat64
@@ -92,7 +99,7 @@ func (c *Cache) getAndClean(request DownloadRequest) image.Image {
 	return next
 }
 
-func (c *Cache) exporter(input <-chan DownloadRequest, output chan<- image.Image) {
+func (c *CacheImpl) exporter(input <-chan DownloadRequest, output chan<- image.Image) {
 	for {
 		downloadRequest, ok := <-input
 		if !ok {

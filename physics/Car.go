@@ -27,13 +27,12 @@ const (
 )
 
 type Car struct {
-	Input                   chan Command
-	easting, northing, v, a float64
-	zoneNumber, angle       int
-	zoneLetter              string
-	ticker                  *time.Ticker
-	lastUpdated             int64
-	j                       int8
+	Input                      chan Command
+	easting, northing, v, a, j float64
+	zoneNumber, angle          int
+	zoneLetter                 string
+	ticker                     *time.Ticker
+	lastUpdated                int64
 }
 
 func (c Car) String() string {
@@ -102,29 +101,29 @@ func (c *Car) Run(lat, lng float64, north bool, angle int, output chan<- downloa
 
 	go func(c *Car) {
 		for range c.ticker.C {
-			next := time.Now().UnixNano()
-			dt := (float64(next-c.lastUpdated) * math.Pow(10, -9)) / timeDilation
-			if c.a > 0 {
-				c.j = -maxJ
-			} else {
-				c.j = maxJ
-			}
-			d := deltaD(dt, c.v, c.a, float64(c.j))
-			c.easting += xComponent(d, c.angle)
-			c.northing += yComponent(d, c.angle)
-			c.v += deltaV(dt, c.a, float64(c.j))
-			c.a += deltaA(dt, c.a, float64(c.j))
-			c.lastUpdated = next
-			for i := 0.5; i < 2; i += 0.5 {
-				d = deltaD(i, c.v, c.a, float64(c.j))
-				latitude, longitude, err := UTM.ToLatLon(c.easting+xComponent(d, c.angle), c.northing+yComponent(d, c.angle), c.zoneNumber, c.zoneLetter)
-				if err != nil {
-					return
-				}
-				output <- downloader.DownloadRequest{Location: downloader.Location{Latitude: latitude, Longitude: longitude}, Angle: c.angle}
-			}
+			nextTime := time.Now().UnixNano()
+			c.update(nextTime, output)
 		}
 	}(c)
 
 	return nil
+}
+
+func (c *Car) update(nextTime int64, output chan<- downloader.DownloadRequest) {
+	dt := (float64(nextTime-c.lastUpdated) * math.Pow(10, -9)) / timeDilation
+	d := deltaD(dt, c.v, c.a, c.j)
+	c.easting += xComponent(d, c.angle)
+	c.northing += yComponent(d, c.angle)
+	c.v += deltaV(dt, c.a, c.j)
+	c.a += deltaA(dt, c.a, c.j)
+	c.j += deltaJ(dt, c.j)
+	c.lastUpdated = nextTime
+	for i := 0.5; i < 2; i += 0.5 {
+		d = deltaD(i, c.v, c.a, c.j)
+		latitude, longitude, err := UTM.ToLatLon(c.easting+xComponent(d, c.angle), c.northing+yComponent(d, c.angle), c.zoneNumber, c.zoneLetter)
+		if err != nil {
+			return
+		}
+		output <- downloader.DownloadRequest{Location: downloader.Location{Latitude: latitude, Longitude: longitude}, Angle: c.angle}
+	}
 }
